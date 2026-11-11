@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Mail } from "lucide-react";
 
 /* ---------- small building blocks ---------- */
 
@@ -153,6 +154,75 @@ export function PillList({ items }: { items: [string, string][] }) {
           <code className="font-semibold text-brand-700">{en}</code>{" "}
           <span className="text-slate-500">({th})</span>
         </span>
+      ))}
+    </div>
+  );
+}
+
+/* ---------- email blocks ---------- */
+
+// A sample email: caption, subject line and body (children)
+export function EmailCard({
+  id,
+  label,
+  subject,
+  children,
+}: {
+  id?: string;
+  label: string;
+  subject: string;
+  children: ReactNode;
+}) {
+  return (
+    <figure
+      id={id}
+      className="scroll-mt-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+    >
+      <figcaption className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">
+        <Mail size={16} aria-hidden="true" className="text-brand-600" />
+        {label}
+      </figcaption>
+      <div className="border-b border-slate-100 px-5 py-3">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-slate-400">Subject</p>
+        <p className="mt-0.5 font-semibold text-slate-900">{subject}</p>
+      </div>
+      <div className="space-y-3 px-5 py-5 text-slate-800">{children}</div>
+    </figure>
+  );
+}
+
+// One part of an email with a small tag saying what it does (Greeting, Body, ...)
+export function EmailLine({ tag, children }: { tag: string; children: ReactNode }) {
+  return (
+    <div className="grid gap-1 border-t border-slate-100 pt-3 first:border-t-0 first:pt-0 sm:grid-cols-[6.5rem_1fr] sm:gap-4">
+      <span className="font-mono text-[11px] uppercase tracking-wider text-brand-600 sm:pt-1">
+        {tag}
+      </span>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+export function Bullets({ items }: { items: ReactNode[] }) {
+  return (
+    <ul className="list-disc space-y-1 pl-5 marker:text-brand-500">
+      {items.map((item, i) => (
+        <li key={i}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+// Name / title lines at the end of an email. bare = no divider (inside an EmailLine)
+export function Signature({ lines, bare = false }: { lines: ReactNode[]; bare?: boolean }) {
+  return (
+    <div
+      className={`text-sm leading-relaxed text-slate-600 ${
+        bare ? "" : "border-t border-dashed border-slate-200 pt-3"
+      }`}
+    >
+      {lines.map((line, i) => (
+        <p key={i}>{line}</p>
       ))}
     </div>
   );
