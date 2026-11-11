@@ -1,233 +1,268 @@
-# 📩 คู่มือเขียนอีเมลธุรกิจถึงผู้จัดการและลูกค้า
+## 🟢 1. รู้จัก `useMemo` คืออะไร?
 
-การเขียนอีเมลอย่างมืออาชีพมีโครงสร้างชัดเจน — เริ่มต้นชัดเจน → เนื้อหากระชับ → ปิดท้ายสุภาพครับ 👇
+`useMemo` คือ **Hook ใน React** ที่ใช้สำหรับ **"เก็บค่าผลลัพธ์ของการคำนวณไว้ เพื่อไม่ต้องคำนวณใหม่ทุกครั้งที่คอมโพเนนต์เรนเดอร์"**
+
+> 
+> **หลักการง่ายๆ:** คำนวณเมื่อจำเป็นเท่านั้น ไม่ใช่ทุกครั้งที่หน้าจออัปเดต
+
+### ทำไมต้องใช้?
+
+- ✅ เพิ่มประสิทธิภาพ → ลดการทำงานหนักซ้ำซ้อน
+- ✅ ควบคุมเมื่อจะให้ค่าถูกคำนวณใหม่
+- ❌ ไม่จำเป็นต้องใช้ทุกที่ — ใช้เมื่อการคำนวณนั้น **ใช้ทรัพยากรมาก** เท่านั้น
 
 ---
 
-## 📌 1. โครงสร้างมาตรฐาน 7 ส่วน
+## 🟡 2. พื้นฐาน: การใช้งานเบื้องต้น
 
-### ✅ 1. หัวข้ออีเมล (Subject Line)
+### โครงสร้าง
 
-**ต้องชัดเจน กระชับ บอกว่าอีเมลเกี่ยวกับอะไรทันที**
+```
+const ค่าที่เก็บไว้ = useMemo(() => {
+  // คำนวณอะไรสักอย่าง
+  return ผลลัพธ์;
+}, [ค่าที่ต้องเฝ้าดู]);
+```
 
-- ❌ ผิด: Hello / Question / Update
-- ✅ ถูก: **Request: Approval for Q4 Budget — [ชื่อคุณ]**
-- ✅ ถูก: **Update: Project Status — Order #1234**
-- ✅ ถูก: **Meeting Request: Discussion on New Schedule — 15 Nov**
+- **อาร์กิวเมนต์ที่ 1:** ฟังก์ชันที่คืนค่าที่ต้องการเก็บไว้
+- **อาร์กิวเมนต์ที่ 2:** อาร์เรย์ของค่าที่เมื่อเปลี่ยน → จะให้คำนวณใหม่
 
-### ✅ 2. คำทักทาย (Greeting / Salutation)
+### ตัวอย่างพื้นฐาน — ไม่ใช้ useMemo
+
+```
+import { useState } from 'react';
+
+export default function BasicExample() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState('');
+
+  // ❌ คำนวณใหม่ทุกครั้งที่เรนเดอร์ แม้ text เปลี่ยนก็ตาม
+  const expensiveCalculation = () => {
+    console.log('กำลังคำนวณ...');
+    let sum = 0;
+    for (let i = 0; i < 100000000; i++) sum += i;
+    return sum;
+  };
+
+  const total = expensiveCalculation();
+
+  return (
+    <div>
+      <h2>จำนวน: {count}</h2>
+      <button onClick={() => setCount(c => c + 1)}>เพิ่ม</button>
+      
+      <input value={text} onChange={(e) => setText(e.target.value)} placeholder="พิมพ์อะไรสักอย่าง" />
+      
+      <p>ผลรวม: {total}</p>
+    </div>
+  );
+}
+```
+
+### ✅ ปรับปรุงด้วย `useMemo`
+
+```
+import { useState, useMemo } from 'react';
+
+export default function BasicExampleWithMemo() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState('');
+
+  const total = useMemo(() => {
+    console.log('กำลังคำนวณ...');
+    let sum = 0;
+    for (let i = 0; i < 100000000; i++) sum += i;
+    return sum;
+  }, []); // [] = คำนวณแค่ครั้งเดียวตอนโหลดคอมโพเนนต์
+
+  return (
+    <div>
+      <h2>จำนวน: {count}</h2>
+      <button onClick={() => setCount(c => c + 1)}>เพิ่ม</button>
+      
+      <input value={text} onChange={(e) => setText(e.target.value)} placeholder="พิมพ์อะไรสักอย่าง" />
+      
+      <p>ผลรวม: {total}</p>
+    </div>
+  );
+}
+```
+
+> 
+> 💡 **ผลลัพธ์:** คำนวณเพียงครั้งเดียว! พิมพ์ในช่องป้อนข้อมูลหรือกดปุ่ม — ไม่มีการทำงานของลูปซ้ำอีก
+
+---
+
+## 🟠 3. การกำหนด Dependency (ค่าที่เฝ้าดู)
+
+```
+const filteredList = useMemo(() => {
+  return list.filter(item => item.price > minPrice);
+}, [list, minPrice]); // เมื่อ list หรือ minPrice เปลี่ยน → คำนวณใหม่
+```
+
+- `[]` → ไม่เคยคำนวณใหม่ (คงที่ตลอด)
+- `[a, b]` → คำนวณใหม่เมื่อ `a` หรือ `b` เปลี่ยนค่า
+- ไม่ใส่อาร์เรย์เลย → จะคำนวณใหม่ทุกครั้ง (เหมือนไม่ได้ใช้เลย!) ❌
+
+---
+
+## 🟤 4. ตัวอย่างระดับกลาง — การกรองและจัดเรียงข้อมูล
+
+```
+import { useState, useMemo } from 'react';
+
+const products = [
+  { id: 1, name: 'แล็ปท็อป', price: 25000, category: 'อิเล็กทรอนิกส์' },
+  { id: 2, name: 'สมุด', price: 120, category: 'เครื่องเขียน' },
+  { id: 3, name: 'โทรศัพท์', price: 18000, category: 'อิเล็กทรอนิกส์' },
+  { id: 4, name: 'ปากกา', price: 25, category: 'เครื่องเขียน' },
+  { id: 5, name: 'หูฟัง', price: 3500, category: 'อิเล็กทรอนิกส์' },
+];
+
+export default function ProductList() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [darkMode, setDarkMode] = useState(false);
+
+  // ✅ คำนวณใหม่เฉพาะเมื่อ searchTerm หรือ sortBy เปลี่ยน
+  const filteredProducts = useMemo(() => {
+    console.log('🔄 กำลังกรองและจัดเรียงสินค้า...');
+    
+    let result = products.filter(p =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    result = [...result].sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'price') return a.price - b.price;
+      return 0;
+    });
+
+    return result;
+  }, [searchTerm, sortBy]);
+
+  return (
+    <div style={{ background: darkMode ? '#1a1a1a' : 'white', color: darkMode ? 'white' : 'black', padding: '20px' }}>
+      <div style={{ marginBottom: '16px' }}>
+        <input
+          type="text"
+          placeholder="ค้นหาสินค้า..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ marginRight: '10px', padding: '6px' }}
+        />
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{ marginRight: '10px', padding: '6px' }}>
+          <option value="name">เรียงตามชื่อ</option>
+          <option value="price">เรียงตามราคา</option>
+        </select>
+        <button onClick={() => setDarkMode(!darkMode)}>
+          {darkMode ? '☀️ สว่าง' : '🌙 มืด'}
+        </button>
+      </div>
+
+      <ul>
+        {filteredProducts.map(product => (
+          <li key={product.id} style={{ padding: '4px 0' }}>
+            {product.name} — ฿{product.price.toLocaleString()}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+> 
+> 💡 **สังเกต:** เมื่อกดเปลี่ยนโหมดสว่าง/มืด — **ไม่มี** ข้อความ `กำลังกรองและจัดเรียงสินค้า...` ปรากฏ เพราะ `darkMode` ไม่ได้อยู่ใน dependency list!
+
+---
+
+## 🔵 5. ระดับมืออาชีพ — การใช้ร่วมกับ Object/Array + ข้อควรระวัง
+
+### ⚠️ ข้อควรระวัง: การเปรียบเทียบค่าใน JavaScript
+
+- **ค่าพื้นฐาน** (number, string, boolean) → เปรียบเทียบด้วยค่าได้เลย
+- **Object / Array** → เปรียบเทียบด้วย **ที่อยู่ในหน่วยความจำ** ไม่ใช่ค่าภายใน
+
+```
+import { useState, useMemo, useEffect } from 'react';
+
+export default function ReferenceExample() {
+  const [count, setCount] = useState(0);
+
+  // ❌ ไม่ดี: ใหม่ทุกครั้งที่เรนเดอร์
+  const userBad = { name: 'สมชาย', age: 30 };
+
+  // ✅ ดี: คงที่ จนกว่าจะมี dependency เปลี่ยน
+  const userGood = useMemo(() => ({ name: 'สมชาย', age: 30 }), []);
+
+  // สาธิตการใช้งานจริงกับ object ซับซ้อน
+  const [filters, setFilters] = useState({ category: 'all', minPrice: 0 });
+
+  const queryParams = useMemo(() => ({
+    category: filters.category,
+    minPrice: filters.minPrice,
+    timestamp: Date.now(),
+  }), [filters.category, filters.minPrice]);
+
+  useEffect(() => {
+    console.log('📡 ส่งคำขอด้วยพารามิเตอร์:', queryParams);
+  }, [queryParams]); // ✅ จะทำงานเฉพาะเมื่อค่าจริงๆ เปลี่ยน
+
+  return (
+    <div>
+      <h3>จำนวน: {count}</h3>
+      <button onClick={() => setCount(c => c + 1)}>อัปเดตคอมโพเนนต์</button>
+      
+      <pre>{JSON.stringify(queryParams, null, 2)}</pre>
+      
+      <button onClick={() => setFilters({ category: 'electronics', minPrice: 1000 })}>
+        เปลี่ยนเงื่อนไข
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+## 🟣 6. การใช้งานขั้นสูง — เมื่อไหร่ควร / ไม่ควร ใช้
+
+### ✅ ควรใช้เมื่อ
+
+- มีการคำนวณที่ใช้เวลานาน / ใช้ทรัพยากรมาก
+- ต้องการป้องกันการสร้าง object/array/function ซ้ำซ้อน
+- ค่าจะถูกนำไปใช้ใน dependency ของ `useEffect`, `useMemo` อื่น หรือส่งให้ `React.memo` component
+- ข้อมูลมาจากการประมวลผลรายการข้อมูลขนาดใหญ่
+
+### ❌ ไม่ควรใช้เมื่อ
+
+- การคำนวณนั้นเร็วมากอยู่แล้ว (เลขคณิตธรรมดา, การเข้าถึงค่าในอ็อบเจกต์)
+- ไม่ได้ส่งผลต่อประสิทธิภาพอย่างมีนัยสำคัญ
+- ใช้เพียงแค่ครั้งเดียวและไม่ซับซ้อน
+
+> 
+> 📌 **กฎทอง:** อย่า optimize ก่อนที่จะพบปัญหา! วัดประสิทธิภาพก่อนเสมอ
+
+---
+
+## 🔴 7. เปรียบเทียบ: `useMemo` vs `useCallback`
 
 ตาราง
 
-| สถานการณ์ | ตัวอย่าง |
-| --- | --- |
-| ทราบชื่อผู้รับ | **Dear Mr. Somsak,** / **Dear Ms. Nara,** |
-| ไม่ทราบชื่อ / ส่งถึงแผนก | **Dear Hiring Manager,** / **Dear Support Team,** |
-| ส่งถึงลูกค้า (สุภาพ) | **Dear Khun Somsak,** หรือ **Dear Mr. Somsak,** |
-| ถึงผู้จัดการที่คุ้นเคย | **Hi John,** / **Hello Nara,** |
-
-> 
-> ⚠️ **ระวัง:** ใส่เครื่องหมาย **จุลภาค (,)** หลังชื่อเสมอ
-
-### ✅ 3. ประโยคเปิดตัว (Opening Line)
-
-แนะนำตัวและวัตถุประสงค์สั้นๆ
-
-- **ถึงผู้จัดการ:**
-
-> 
-> I hope this email finds you well. I am writing to request your approval on the budget for next month.
-> (หวังว่าคุณจะสบายดีนะครับ ผมเขียนอีเมลนี้เพื่อขออนุมัติงบประมาณเดือนหน้า)
-- **ถึงลูกค้า:**
-
-> 
-> Dear Mr. Somsak, Thank you for your recent inquiry. Please find the details as follows.
-> (เรียนคุณสมศักดิ์ ขอบคุณสำหรับข้อสอบถาม ด้านล่างเป็นรายละเอียดครับ)
-
-### ✅ 4. เนื้อหา (Body)
-
-**กฎสำคัญ: กระชับ ชัดเจน แบ่งย่อหน้า อย่าเขียนยาวติดกัน**
-
-- 1 ย่อหน้า = 1 ประเด็น
-- ใช้ bullet point เมื่อมีหลายรายการ
-- ระบุสิ่งที่ต้องการให้ทำชัดเจน (Call to Action)
-
-> 
-> **ตัวอย่าง:**
-> We would like to inform you about the progress of the project:
-> 
-> 
-> - Phase 1: Completed on schedule ✅
-> - Phase 2: In progress, expected finish: 20 Nov
-> - Issue: Need your approval on the attached document by tomorrow noon
-> 
-> 
-> Could you please review and confirm by **12:00 PM tomorrow**? Thank you.
-
-### ✅ 5. ประโยคปิด (Closing)
-
-สรุปสิ่งที่ต้องการและขอบคุณ
-
-- Thank you for your time and support.
-- Please feel free to contact me if you have any questions.
-- Looking forward to your reply.
-
-### ✅ 6. คำลงท้าย (Sign-off)
-
-ตาราง
-
-| ระดับความเป็นทางการ | ใช้เมื่อ | ตัวอย่าง |
+|  | `useMemo` | `useCallback` |
 | --- | --- | --- |
-| สุภาพมาก / เป็นทางการ | ลูกค้า, คนที่ไม่คุ้นเคย | **Sincerely,** / **Yours sincerely,** |
-| มาตรฐานทั่วไป | ผู้จัดการ, เพื่อนร่วมงาน, ลูกค้า | **Best regards,** / **Kind regards,** |
-| เป็นกันเอง | คนที่ทำงานด้วยกันบ่อย | **Best,** / **Thanks,** |
-
-### ✅ 7. ลายเซ็น (Signature)
+| **คืนค่ากลับ** | ผลลัพธ์จากการเรียกฟังก์ชัน | ฟังก์ชันเอง |
+| **รูปแบบ** | `useMemo(() => ค่า, [deps])` | `useCallback(() => {}, [deps])` |
+| **ใช้สำหรับ** | คำนวณและเก็บค่าตัวแปร | เก็บฟังก์ชันเพื่อส่งให้คอมโพเนนต์ลูก |
 
 ```
-ชื่อ-นามสกุล
-ตำแหน่ง | ชื่อบริษัท
-📞 เบอร์ติดต่อ | 📧 อีเมล
-🔗 เว็บไซต์/LinkedIn (ถ้ามี)
+// useMemo → เก็บ "ค่า"
+const total = useMemo(() => a + b, [a, b]);
+
+// useCallback → เก็บ "ฟังก์ชัน"
+const handleSubmit = useCallback(() => {
+  console.log('ส่งข้อมูล');
+}, []);
 ```
-
----
-
-## 📌 2. ตัวอย่างฉบับสมบูรณ์ — ถึงผู้จัดการ
-
-### 📋 ตัวอย่างที่ 1: ขออนุมัติ / รายงานงาน
-
-> 
-> **Subject:** Request for Approval — November Schedule — [ชื่อคุณ]
-> 
-> 
-> Dear Manager,
-> 
-> 
-> I hope you are doing well.
-> 
-> 
-> I have prepared the work schedule for November as attached. Could you please review and approve it at your earliest convenience?
-> 
-> 
-> Key points:
-> 
-> 
-> - All team members are covered
-> - Public holidays are included
-> - Deadline for confirmation: Nov 10
-> 
-> 
-> Please let me know if you have any suggestions or changes.
-> 
-> 
-> Thank you and best regards,
-> 
-> 
-> [ชื่อคุณ]
-> [ตำแหน่ง]
-> 📞 [เบอร์ติดต่อ]
-
----
-
-## 📌 3. ตัวอย่างฉบับสมบูรณ์ — ถึงลูกค้า
-
-### 📋 ตัวอย่างที่ 2: ยืนยันการสั่งซื้อ / ให้ข้อมูล
-
-> 
-> **Subject:** Confirmation — Order #4567 — Your Company Name
-> 
-> 
-> Dear Mr. Somsak,
-> 
-> 
-> Thank you for choosing our service. We are pleased to confirm your order as follows:
-> 
-> 
-> **Order Details:**
-> 
-> 
-> - Order No: #4567
-> - Date: 11 November 2026
-> - Items: Office Chair × 2
-> - Delivery Date: 15 November 2026
-> - Total Amount: 5,000 THB
-> 
-> 
-> If you have any questions or need to make changes, please contact us anytime at [เบอร์ติดต่อ].
-> 
-> 
-> Thank you for your business. We look forward to serving you again.
-> 
-> 
-> Best regards,
-> 
-> 
-> [ชื่อคุณ]
-> [ตำแหน่ง]
-> [ชื่อบริษัท]
-
----
-
-### 📋 ตัวอย่างที่ 3: แจ้งปัญหา/ล่าช้า (สุภาพและมีทางออก)
-
-> 
-> **Subject:** Update — Delivery Schedule for Order #123
-> 
-> 
-> Dear Ms. Nara,
-> 
-> 
-> First, thank you for your patience regarding Order #123.
-> 
-> 
-> We would like to inform you that there has been a slight delay due to transportation issues. The new expected delivery date is **16 November 2026**.
-> 
-> 
-> We sincerely apologize for the inconvenience. To make up for this, we would like to offer you a 10% discount on your next order.
-> 
-> 
-> Should you have any concerns, please feel free to contact me directly.
-> 
-> 
-> Thank you for your understanding.
-> 
-> 
-> Best regards,
-> 
-> 
-> [ชื่อคุณ]
-
----
-
-## ⚡ 4. กฎเหล็ก & ข้อผิดพลาดที่พบบ่อย
-
-### ✅ ควรทำ
-
-- หัวข้อชัดเจนที่สุด
-- เขียนกระชับ ไม่เยอะเกินไป
-- แบ่งย่อหน้า ง่ายต่อการอ่าน
-- ระบุสิ่งที่ต้องการให้ทำ + กำหนดเวลา (ถ้ามี)
-- ตรวจสอบคำผิดก่อนส่ง
-- แนบไฟล์เสมอถ้าเกี่ยวข้อง และเขียนว่า "Attached please find..." ในเนื้อหาด้วย
-
-### ❌ ห้ามทำ
-
-- ห้ามใช้ตัวอักษรทั้งหมดเป็นตัวใหญ่ ❌ IT LOOKS LIKE SHOUTING
-- ห้ามใช้ภาษาพูด / คำย่อแชท ❌ "thx, wanna, u r"
-- ห้ามส่งเมื่อโกรธ — พัก 5 นาทีแล้วกลับมาอ่านใหม่
-- ห้ามลืมแนบไฟล์ถ้าบอกว่าแนบมาให้
-- ห้ามใช้คำว่า "Hey" กับลูกค้าหรือผู้จัดการ
-
-### 💡 ประโยคมาตรฐานที่ใช้บ่อย
-
-ตาราง
-
-| สถานการณ์ | ประโยคภาษาอังกฤษมาตรฐาน |
-| --- | --- |
-| ขอบคุณล่วงหน้า | Thank you in advance for your help. |
-| ขอความกรุณา | Could you please...? / I would appreciate it if you could... |
-| ขอโทษในความล่าช้า | We apologize for the delay and appreciate your patience. |
-| แนบไฟล์มาให้ | Please find attached the document you requested. |
-| ติดต่อกลับได้ตลอด | Please do not hesitate to contact me if you need further information. |
-| รอการตอบกลับ | Looking forward to hearing from you soon. |
