@@ -15,6 +15,7 @@ import Grammar06 from "./langsCourse/English/Grammar06";
 import Vocab01 from "./langsCourse/English/Vocab01";
 import GrammarVocab01 from "./langsCourse/English/GrammarVocab01";
 import Vocab02 from "./langsCourse/English/Vocab02";
+import Writing01 from "./langsCourse/English/Writing01";
 
 const lessons = [
   { id: "G01", title: "Present Simple Tense" },
@@ -26,6 +27,7 @@ const lessons = [
   { id: "V01", title: "Prefix Suffix" },
   { id: "GV01", title: "Giving opinions" },
   { id: "V02", title: "Agreeing and disagreeing" },
+  { id: "W01", title: "Email Writing" },
 ];
 
 function English() {
@@ -151,6 +153,7 @@ function English() {
             {active.id === "V01" && <Vocab01 />}
             {active.id === "GV01" && <GrammarVocab01 />}
             {active.id === "V02" && <Vocab02 />}
+            {active.id === "W01" && <Writing01 />}
           </div>
         </section>
       </div>
