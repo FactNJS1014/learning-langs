@@ -1,4 +1,3 @@
-import React from 'react'
 import { useParams } from 'react-router-dom'
 import English from './langs/English'
 import NotFound from '../../../pages/NotFound'
