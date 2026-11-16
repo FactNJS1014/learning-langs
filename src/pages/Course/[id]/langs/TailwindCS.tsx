@@ -1,9 +1,10 @@
 import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react'
-import SidebarResponsive from './Tailwind/SidebarResponsive';
-import NavbarResponsive from './Tailwind/NavbarResponsive';
-import CardDesign from './Tailwind/CardDesign';
-import TableDesign from './Tailwind/TableDesign';
+import SidebarResponsive from './langsCourse/Tailwind/SidebarResponsive';
+import NavbarResponsive from './langsCourse/Tailwind/NavbarResponsive';
+import CardDesign from './langsCourse/Tailwind/CardDesign';
+import TableDesign from './langsCourse/Tailwind/TableDesign';
+import FormDesign from './langsCourse/Tailwind/FormDesign';
 
 
 const lessons = [
@@ -86,7 +87,7 @@ function TailwindCS() {
                  <div className="bg-linear-to-r from-blue-400 to-blue-600 text-white p-2 rounded-lg flex items-center justify-center">
                    <BookOpen className="w-6 h-6" />
                  </div>
-                 <p>English Course</p>
+                 <p>Tailwind CSS Course</p>
                </div>
              </h1>
              {lessons.map((lesson) => {
@@ -128,6 +129,7 @@ function TailwindCS() {
             {active.id === "T02" && <NavbarResponsive />}
             {active.id === "T03" && <CardDesign />}
             {active.id === "T04" && <TableDesign />}
+            {active.id === "T05" && <FormDesign />}
            </div>
          </section>
        </div>

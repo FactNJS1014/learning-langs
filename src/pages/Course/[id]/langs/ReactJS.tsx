@@ -5,13 +5,15 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import UseMemo from './langsCourse/ReactCS/UseMemo';
 import UseCallback01 from './langsCourse/ReactCS/๊UseCallback01';
 import UseRef01 from './langsCourse/ReactCS/UseRef01';
+import ImageResize01 from './langsCourse/ReactCS/ImageResizer';
+import ReactTypeScript01 from './langsCourse/ReactCS/ReactTypeScript01';
 
 const lessons = [
   { id: "EP01", title: "useMemo" },
   { id: "EP02", title: "useCallback" },
   { id: "EP03", title: "useRef" },
   { id: "EP04", title: "Image Sizing" },
-  { id: "EP05", title: "Camera" },
+  { id: "EP05", title: "Using Typescript " },
   { id: "EP06", title: "Scan QR Code" }, 
   
 ];
@@ -87,7 +89,7 @@ function ReactJS() {
                  <div className="bg-linear-to-r from-blue-400 to-blue-600 text-white p-2 rounded-lg flex items-center justify-center">
                    <BookOpen className="w-6 h-6" />
                  </div>
-                 <p>English Course</p>
+                 <p>React Course</p>
                </div>
              </h1>
              {lessons.map((lesson) => {
@@ -128,6 +130,8 @@ function ReactJS() {
             {active.id === "EP01" && <UseMemo />}
             {active.id === "EP02" && <UseCallback01 />}
             {active.id === "EP03" && <UseRef01 />}
+            {active.id === "EP04" && <ImageResize01 />}
+            {active.id === "EP05" && <ReactTypeScript01 />}
            </div>
          </section>
        </div>

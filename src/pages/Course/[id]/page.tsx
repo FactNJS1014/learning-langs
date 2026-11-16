@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import English from './langs/English'
 import NotFound from '../../../pages/NotFound'
 import ReactJS from './langs/ReactJS';
-import TailwindCS from './langs/langsCourse/TailwindCS';
+import TailwindCS from './langs/TailwindCS';
 
 function page() {
   const { id } = useParams();
